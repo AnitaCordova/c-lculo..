@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graficador de Ecuaciones</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      padding: 30px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      margin-bottom: 15px;
+    }
+    canvas {
+      background-color: #ffffff;
+      border: 1px solid #cccccc;
+      margin-top: 20px;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Graficador de Ecuaciones</h1>
+  <p>Ejemplos: <code>x**2 - 4*x + 3</code> o <code>2*x + 5</code></p>
+  <input id="ecuacion" type="text" placeholder="Escribe la ecuación aquí..." />
+  <br />
+  <button onclick="graficar()">Graficar</button>
+  <canvas id="grafico" width="700" height="400"></canvas>
+  <div class="info" id="info"></div>
+
+  <script>
+    function evaluarEcuacion(ecuacion, x) {
+      try {
+        return eval(ecuacion.replace(/x/g, `(${x})`));
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function graficar() {
+      const ecuacion = document.getElementById("ecuacion").value;
+      const xValores = [];
+      const yValores = [];
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      for (let x = -20; x <= 20; x += 0.5) {
+        const y = evaluarEcuacion(ecuacion, x);
+        if (!isNaN(y) && isFinite(y)) {
+          xValores.push(x);
+          yValores.push(y);
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+
+      if (window.graficoExistente) window.graficoExistente.destroy();
+
+      const ctx = document.getElementById("grafico").getContext("2d");
+      window.graficoExistente = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: xValores,
+          datasets: [{
+            label: `f(x) = ${ecuacion}`,
+            data: yValores,
+            borderColor: "blue",
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: "x" } },
+            y: { title: { display: true, text: "f(x)" } }
+          }
+        }
+      });
+
+      document.getElementById("info").innerHTML = `
+        <strong>Dominio:</strong> [-20, 20]<br>
+        <strong>Rango estimado:</strong> [${minY.toFixed(2)}, ${maxY.toFixed(2)}]
+      `;
+    }
+  </script>
+</body>
+</html>
