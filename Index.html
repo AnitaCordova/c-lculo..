@@ -2,97 +2,116 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Graficador de Ecuaciones</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Calculadora de Dominio y Rango</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f8ff;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f6f9;
+      color: #333;
       padding: 30px;
       text-align: center;
     }
-    input, button {
+
+    h2 {
+      color: #0f4c75;
+    }
+
+    input {
       padding: 10px;
+      width: 300px;
       font-size: 16px;
-      width: 80%;
-      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin: 10px;
     }
-    canvas {
-      background-color: #ffffff;
-      border: 1px solid #cccccc;
-      margin-top: 20px;
+
+    button {
+      padding: 10px 20px;
+      background-color: #3282b8;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
-    .info {
+
+    button:hover {
+      background-color: #0f4c75;
+    }
+
+    #grafica {
+      margin-top: 30px;
+    }
+
+    #resultado {
+      background: #dff6ff;
       margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      width: 60%;
+      margin-left: auto;
+      margin-right: auto;
       font-size: 18px;
+      color: #06283d;
     }
   </style>
 </head>
 <body>
-  <h1>Graficador de Ecuaciones</h1>
-  <p>Ejemplos: <code>x**2 - 4*x + 3</code> o <code>2*x + 5</code></p>
-  <input id="ecuacion" type="text" placeholder="Escribe la ecuación aquí..." />
-  <br />
+
+  <h2>🔍 Calculadora de Dominio y Rango con Gráfica</h2>
+
+  <p>Escribe una función matemática en términos de <strong>x</strong> (por ejemplo: <em>Math.sin(x)</em>, <em>Math.pow(x, 2)</em>, <em>x*x + 3</em>)</p>
+  
+  <input type="text" id="funcion" value="Math.sin(x)">
   <button onclick="graficar()">Graficar</button>
-  <canvas id="grafico" width="700" height="400"></canvas>
-  <div class="info" id="info"></div>
+
+  <div id="grafica" style="width:100%;height:500px;"></div>
+  <div id="resultado"></div>
 
   <script>
-    function evaluarEcuacion(ecuacion, x) {
-      try {
-        return eval(ecuacion.replace(/x/g, `(${x})`));
-      } catch (e) {
-        return NaN;
-      }
-    }
-
     function graficar() {
-      const ecuacion = document.getElementById("ecuacion").value;
-      const xValores = [];
-      const yValores = [];
+      const fxStr = document.getElementById("funcion").value;
+      let x = [];
+      let y = [];
       let minY = Infinity;
       let maxY = -Infinity;
 
-      for (let x = -20; x <= 20; x += 0.5) {
-        const y = evaluarEcuacion(ecuacion, x);
-        if (!isNaN(y) && isFinite(y)) {
-          xValores.push(x);
-          yValores.push(y);
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
+      for (let i = -20; i <= 20; i += 0.1) {
+        try {
+          const val = eval(fxStr.replace(/x/g, (${i})));
+          if (isFinite(val)) {
+            x.push(i);
+            y.push(val);
+            if (val < minY) minY = val;
+            if (val > maxY) maxY = val;
+          }
+        } catch (e) {
+          continue;
         }
       }
 
-      if (window.graficoExistente) window.graficoExistente.destroy();
-
-      const ctx = document.getElementById("grafico").getContext("2d");
-      window.graficoExistente = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: xValores,
-          datasets: [{
-            label: `f(x) = ${ecuacion}`,
-            data: yValores,
-            borderColor: "blue",
-            fill: false,
-            tension: 0.2
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: { title: { display: true, text: "x" } },
-            y: { title: { display: true, text: "f(x)" } }
-          }
-        }
+      Plotly.newPlot('grafica', [{
+        x: x,
+        y: y,
+        mode: 'lines',
+        name: 'f(x)',
+        line: { color: '#0f4c75', width: 3 }
+      }], {
+        title: 'Gráfica de la Función',
+        xaxis: { title: 'x', range: [-20, 20], zeroline: true },
+        yaxis: { title: 'f(x)', zeroline: true },
+        plot_bgcolor: '#ffffff',
+        paper_bgcolor: '#ffffff'
       });
 
-      document.getElementById("info").innerHTML = `
-        <strong>Dominio:</strong> [-20, 20]<br>
-        <strong>Rango estimado:</strong> [${minY.toFixed(2)}, ${maxY.toFixed(2)}]
+      document.getElementById("resultado").innerHTML = `
+        <strong>📌 Dominio aproximado:</strong> x ∈ [-20, 20]<br>
+        <strong>📈 Rango estimado:</strong> y ∈ [${minY.toFixed(2)}, ${maxY.toFixed(2)}]
       `;
     }
   </script>
+
 </body>
 </html>
